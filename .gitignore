@@ -1,0 +1,38 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Database & SQLite files
+*.db
+*.sqlite3
+certificates.db
+test_certificates.db
+
+# Generated Certificate Files in storage
+storage/certificates/*
+!storage/certificates/.gitkeep
+
+# Pytest / Coverage / Caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment variables
+.env
+.env.local
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

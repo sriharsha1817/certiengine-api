@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Certificate Generator Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo">
+        <span>📜</span>
+        <span>CertiEngine API</span>
+      </div>
+      <div class="badge-online">
+        <div class="dot"></div> System Active & Ready
+      </div>
+    </header>
+
+    <!-- Metrics Header -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Jobs</div>
+        <div class="stat-value" id="stat-total-jobs">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Certificates Issued</div>
+        <div class="stat-value" id="stat-total-certs">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Success Rate</div>
+        <div class="stat-value" id="stat-success-rate">100%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">API Documentation</div>
+        <div style="margin-top: 0.5rem;">
+          <a href="/docs" target="_blank" class="btn btn-secondary btn-sm">📖 OpenAPI Docs</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-create')">⚡ Create Bulk Job</button>
+      <button class="tab-btn" onclick="switchTab('tab-csv')">📁 CSV File Upload</button>
+      <button class="tab-btn" onclick="switchTab('tab-jobs')">📊 Monitor Jobs (<span id="jobs-count-badge">0</span>)</button>
+      <button class="tab-btn" onclick="switchTab('tab-verify')">🔍 Verify Authenticity</button>
+    </div>
+
+    <!-- TAB 1: CREATE BULK JOB (Interactive Form) -->
+    <div id="tab-create" class="tab-content active">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Bulk Certificate Request Form</h2>
+          <button class="btn btn-secondary btn-sm" onclick="loadDemoData()">✨ Populate Sample Data</button>
+        </div>
+
+        <form id="job-form" onsubmit="handleCreateJob(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="event_name">Course / Event Title *</label>
+              <input type="text" id="event_name" required placeholder="e.g. AI & Machine Learning Bootcamp 2026">
+            </div>
+
+            <div class="form-group">
+              <label for="issuer_name">Issuing Organization *</label>
+              <input type="text" id="issuer_name" value="Tech Academy Global" required>
+            </div>
+
+            <div class="form-group">
+              <label for="issuer_title">Issuer Title</label>
+              <input type="text" id="issuer_title" value="Director of Certification">
+            </div>
+
+            <div class="form-group">
+              <label for="template_style">Design Template Theme</label>
+              <select id="template_style">
+                <option value="classic">Classic Navy & Gold (Default)</option>
+                <option value="modern">Modern Teal & Dark Slate</option>
+                <option value="elegant">Elegant Royal Purple</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="issue_date">Issue Date</label>
+              <input type="text" id="issue_date" placeholder="e.g. October 6, 2026 (Leave empty for today)">
+            </div>
+
+            <div class="form-group">
+              <label for="async_process">Processing Mode</label>
+              <select id="async_process">
+                <option value="true">Background Task (Async 202 Accepted)</option>
+                <option value="false">Synchronous Execution (Direct 200 OK)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Recipients Section -->
+          <div style="margin-top: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <h3>Recipients List (<span id="recipient-count">0</span>)</h3>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="addRecipientRow()">+ Add Recipient</button>
+            </div>
+
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Recipient Name *</th>
+                    <th>Email Address *</th>
+                    <th>Custom Metadata (JSON / Role / Score)</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="recipients-tbody">
+                  <!-- Rows added dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem; text-align: right;">
+            <button type="submit" class="btn btn-primary">🚀 Generate Certificates Now</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB 2: CSV UPLOAD -->
+    <div id="tab-csv" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Bulk Generation via CSV Upload</h2>
+        </div>
+
+        <form id="csv-form" onsubmit="handleCSVUpload(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="csv_event_name">Course / Event Title *</label>
+              <input type="text" id="csv_event_name" required placeholder="e.g. Cybersecurity Essentials Workshop">
+            </div>
+
+            <div class="form-group">
+              <label for="csv_issuer_name">Issuing Organization *</label>
+              <input type="text" id="csv_issuer_name" value="CyberSec Institute">
+            </div>
+
+            <div class="form-group">
+              <label for="csv_template_style">Template Theme</label>
+              <select id="csv_template_style">
+                <option value="classic">Classic Navy & Gold</option>
+                <option value="modern">Modern Teal</option>
+                <option value="elegant">Elegant Royal Purple</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="csv_file">Upload CSV File (.csv) *</label>
+              <input type="file" id="csv_file" accept=".csv" required>
+            </div>
+          </div>
+
+          <div style="margin-top: 1rem; background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 0.5rem; font-size: 0.85rem; color: #9ca3af;">
+            <strong>ℹ️ CSV Format Guidelines:</strong> CSV file must include headers <code>name</code> (or <code>recipient_name</code>) and <code>email</code> (or <code>recipient_email</code>). Any extra columns (like <code>role</code> or <code>grade</code>) will automatically be saved as recipient attributes.
+          </div>
+
+          <div style="margin-top: 1.5rem; text-align: right;">
+            <button type="submit" class="btn btn-primary">📤 Upload & Start Generation Job</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB 3: JOBS & PROGRESS MONITOR -->
+    <div id="tab-jobs" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Jobs & Live Progress Tracker</h2>
+          <button class="btn btn-secondary btn-sm" onclick="fetchJobs()">🔄 Refresh List</button>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Job ID</th>
+                <th>Event Title</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Stats (Success / Fail / Total)</th>
+                <th>Created At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="jobs-list-tbody">
+              <tr><td colspan="7" style="text-align: center; color: #9ca3af;">No jobs submitted yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: VERIFY CERTIFICATE -->
+    <div id="tab-verify" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Certificate Authenticity Verification</h2>
+        </div>
+
+        <form onsubmit="handleVerify(event)">
+          <div class="form-group" style="max-width: 600px; margin-bottom: 1.5rem;">
+            <label for="verify_id">Enter Certificate ID</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="verify_id" required placeholder="Paste Certificate ID e.g. 57ba6067-..." style="flex: 1;">
+              <button type="submit" class="btn btn-primary">🔍 Verify Now</button>
+            </div>
+          </div>
+        </form>
+
+        <div id="verify-result" style="display: none; margin-top: 1.5rem; padding: 1.5rem; border-radius: 0.75rem;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL: Job / Certificate Details -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
